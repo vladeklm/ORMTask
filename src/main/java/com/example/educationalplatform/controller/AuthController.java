@@ -1,12 +1,11 @@
 package com.example.educationalplatform.controller;
 
+import com.example.educationalplatform.config.JwtUtil;
 import com.example.educationalplatform.entity.User;
-import com.example.educationalplatform.service.JwtService;
 import com.example.educationalplatform.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -21,10 +20,8 @@ public class AuthController {
     private UserService userService;
 
     @Autowired
-    private JwtService jwtService;
+    private JwtUtil jwtUtil;;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
@@ -35,13 +32,13 @@ public class AuthController {
             }
 
             // Хешируем пароль перед сохранением
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setPassword(user.getPassword());
 
             // Сохраняем нового пользователя
             User createdUser = userService.saveUser(user);
 
             // Генерируем JWT токен
-            String token = jwtService.generateToken(user.getEmail());
+            String token = jwtUtil.generateToken(user.getName(), user.getId(), user.getRole().name());
 
             // Возвращаем токен и информацию о пользователе
             Map<String, Object> response = new HashMap<>();
@@ -62,12 +59,12 @@ public class AuthController {
                     .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
             // Проверяем пароль
-            if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            if (loginRequest.getPassword()== user.getPassword()) {
                 return new ResponseEntity<>("Invalid credentials", HttpStatus.UNAUTHORIZED);
             }
 
             // Генерируем JWT токен
-            String token = jwtService.generateToken(user.getEmail());
+            String token = jwtUtil.generateToken(user.getName(), user.getId(), user.getRole().name());
 
             // Возвращаем токен и информацию о пользователе
             Map<String, Object> response = new HashMap<>();

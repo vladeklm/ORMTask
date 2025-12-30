@@ -9,17 +9,13 @@ import com.example.educationalplatform.repository.UserRepository;
 import com.example.educationalplatform.repository.SubmissionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UserService implements UserDetailsService {
+public class UserService  {
 
     @Autowired
     private UserRepository userRepository;
@@ -33,8 +29,6 @@ public class UserService implements UserDetailsService {
     @Autowired
     private CourseService courseService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -52,7 +46,7 @@ public class UserService implements UserDetailsService {
     public User saveUser(User user) {
         // Хешируем пароль перед сохранением, если он не хеширован
         if (user.getPassword() != null && !user.getPassword().startsWith("$2a$")) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setPassword((user.getPassword()));
         }
         return userRepository.save(user);
     }
@@ -85,17 +79,4 @@ public class UserService implements UserDetailsService {
         return submissionRepository.findByStudent(user);
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> user = userRepository.findByEmail(username);
-        if (user.isPresent()) {
-            return org.springframework.security.core.userdetails.User.builder()
-                    .username(user.get().getEmail())
-                    .password(user.get().getPassword())
-                    .roles(user.get().getRole().name())
-                    .build();
-        } else {
-            throw new UsernameNotFoundException("User not found with email: " + username);
-        }
-    }
 }

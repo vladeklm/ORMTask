@@ -1,0 +1,28 @@
+version: "3.9"
+
+networks:
+  hostnet:
+    external: true
+
+services:
+  db:
+    image: postgres:15
+    container_name: educational_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: educational_platform
+    ports:
+      - "6432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: educational_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
