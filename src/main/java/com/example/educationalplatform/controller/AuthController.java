@@ -1,6 +1,7 @@
 package com.example.educationalplatform.controller;
 
 import com.example.educationalplatform.config.JwtUtil;
+import com.example.educationalplatform.dto.UserRegistrationDto;
 import com.example.educationalplatform.entity.User;
 import com.example.educationalplatform.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,12 +25,19 @@ public class AuthController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
+    public ResponseEntity<?> registerUser(@RequestBody UserRegistrationDto userRegistrationDto) {
         try {
             // Проверяем, что пользователя с таким email еще нет
-            if (userService.getUserByEmail(user.getEmail()).isPresent()) {
+            if (userService.getUserByEmail(userRegistrationDto.getEmail()).isPresent()) {
                 return new ResponseEntity<>("Email already exists", HttpStatus.CONFLICT);
             }
+
+            // Создаем нового пользователя из DTO
+            User user = new User();
+            user.setName(userRegistrationDto.getName());
+            user.setEmail(userRegistrationDto.getEmail());
+            user.setPassword(userRegistrationDto.getPassword());
+            user.setRole(userRegistrationDto.getRole());
 
             // Хешируем пароль перед сохранением
             user.setPassword(user.getPassword());
@@ -69,7 +77,7 @@ public class AuthController {
             // Возвращаем токен и информацию о пользователе
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
-            response.put("user", user);
+            response.put("user", user.getName());
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (EntityNotFoundException e) {
